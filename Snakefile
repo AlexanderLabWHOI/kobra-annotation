@@ -16,8 +16,9 @@ print(ID)
 #---RULES---#
 
 rule all:
-    input: BLASTDB, expand('output/blast/{id}.blast.tab', id=ID)
-
+    input: BLASTDB, 
+       # expand('output/blast/{id}.blastx.tab', id=ID),
+        expand('output/blast/{id}.blastp.tab', id=ID)
 rule build_blast_db:
     input: KEGG_DB
     output: BLASTDB
@@ -32,7 +33,7 @@ rule build_blast_db:
 
 rule run_blastx:
     input: 'genomes/{id}.fa'
-    output: 'output/blast/{id}.blast.tab'
+    output: 'output/blast/{id}.blastx.tab'
     params:
         db = BLASTPREFIX
     conda:
@@ -40,5 +41,28 @@ rule run_blastx:
 
     shell:
         """
-        blastx -db {params.db} -query {input} -outfmt 6 -evalue 1e-5
+        blastx -db {params.db} -query {input} -out {output} -outfmt 6 -evalue 1e-5
         """
+
+rule run_blastp: 
+    input: 'genomes/{id}.faa'
+    output: 'output/blast/{id}.blastp.tab'
+    params:
+        db = BLASTPREFIX
+    conda:
+        'envs/blast.yaml'
+    shell:
+        """
+        blastp -db {params.db} -query {input} -out {output} -outfmt 6 -evalue 1e-5
+        """
+
+
+#rule kegg_annot:
+#    input: 'output/blast/{id}.blastp.tab'
+#    output: 'test'
+#    conda:
+#        'envs/kegg-annot.yaml'
+#    shell:
+#        """
+#        keggannot_genes2ko
+#        """
