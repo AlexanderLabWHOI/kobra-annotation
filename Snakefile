@@ -13,12 +13,14 @@ BLASTDB = expand(BLASTPREFIX+'.00.{ext}', ext =["phr", "pin", "psq"])
 ID, = glob_wildcards("genomes/{id}.fa")
 
 print(ID)
+
 #---RULES---#
 
 rule all:
     input: BLASTDB, 
        # expand('output/blast/{id}.blastx.tab', id=ID),
         expand('output/blast/{id}.blastp.tab', id=ID)
+
 rule build_blast_db:
     input: KEGG_DB
     output: BLASTDB
@@ -31,21 +33,28 @@ rule build_blast_db:
         makeblastdb -dbtype prot -in {input} -out {params.prefix}
         """
 
-rule run_blastx:
+rule prodigal:
     input: 'genomes/{id}.fa'
-    output: 'output/blast/{id}.blastx.tab'
-    params:
-        db = BLASTPREFIX
-    conda:
-        'envs/blast.yaml'
+    output:
+        faa='proteins/{id}.faa',
+        gff='proteins/{id}_prodigal.gff'
+    conda: "envs/prodigal.yaml"
+    shell: 'prodigal -p meta -a {output.faa} -q -i {input} -f gff -o {output.gff}'
 
-    shell:
-        """
-        blastx -db {params.db} -query {input} -out {output} -outfmt 6 -evalue 1e-5
-        """
+#rule run_blastx:
+#    input: 'genomes/{id}.fa'
+#    output: 'output/blast/{id}.blastx.tab'
+#    params:
+#        db = BLASTPREFIX
+#    conda:
+#        'envs/blast.yaml'
+#    shell:
+#        """
+#        blastx -db {params.db} -query {input} -out {output} -outfmt 6 -evalue 1e-5
+#        """
 
 rule run_blastp: 
-    input: 'genomes/{id}.faa'
+    input: 'proteins/{id}.faa'
     output: 'output/blast/{id}.blastp.tab'
     params:
         db = BLASTPREFIX
@@ -55,7 +64,6 @@ rule run_blastp:
         """
         blastp -db {params.db} -query {input} -out {output} -outfmt 6 -evalue 1e-5
         """
-
 
 #rule kegg_annot:
 #    input: 'output/blast/{id}.blastp.tab'
