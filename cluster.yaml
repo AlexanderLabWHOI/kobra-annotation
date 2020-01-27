@@ -24,8 +24,8 @@ run_blastp:
     mem: 20 
     time: 1440
 
-run_blastx:
+kegg_annot:
     queue: compute
-    threads: 8
-    mem: 20 
-    time: 1440
+    threads: 1
+    mem: 2
+    time: 40
