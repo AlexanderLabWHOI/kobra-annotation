@@ -19,7 +19,7 @@ print(ID)
 rule all:
     input: BLASTDB, 
        # expand('output/blast/{id}.blastx.tab', id=ID),
-        expand('output/blast/{id}.blastp.tab', id=ID)
+        expand('output/blast/{id}.blastp.tab', id=ID), expand('output/kegg_table/{id}.kegg_table.tsv', id=ID)
 
 rule build_blast_db:
     input: KEGG_DB
@@ -65,12 +65,16 @@ rule run_blastp:
         blastp -db {params.db} -query {input} -out {output} -outfmt 6 -evalue 1e-5
         """
 
-#rule kegg_annot:
-#    input: 'output/blast/{id}.blastp.tab'
-#    output: 'test'
-#    conda:
-#        'envs/kegg-annot.yaml'
-#    shell:
-#        """
-#        keggannot_genes2ko
-#        """
+rule kegg_annot:
+    input: 'output/blast/{id}.blastp.tab'
+    output: 'output/kegg_table/{id}.kegg_table.tsv'
+    params: 
+        kegg = KEGG_DIR
+    conda:
+        'envs/kegg-annot.yaml'
+    log:
+        'logs/{id}.kegg_table.log'
+    shell:
+        """
+        keggannot_genes2ko {params.kegg} {input} -o {output}  > {log} 
+        """
