@@ -27,5 +27,17 @@ run_blastp:
 kegg_annot:
     queue: compute
     threads: 1
-    mem: 2
-    time: 40
+    mem: 16
+    time: 400
+
+diamond_map:
+    queue: scavenger
+    threads: 8
+    mem: 16
+    time: 1440
+
+compute_diamond_index:
+    queue: compute
+    mem: 16
+    time: 1440
+    threads: 8
